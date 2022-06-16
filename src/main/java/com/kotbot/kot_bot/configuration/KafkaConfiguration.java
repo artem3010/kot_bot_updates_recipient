@@ -34,7 +34,7 @@ public class KafkaConfiguration {
 
     @Bean
     public NewTopic updatesTopic() {
-        return new NewTopic(topic, 1, (short) 1);
+        return new NewTopic(topic, 3, (short) 1);
     }
 
     @Bean

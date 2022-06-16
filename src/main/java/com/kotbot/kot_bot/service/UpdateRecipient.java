@@ -30,24 +30,26 @@ public class UpdateRecipient {
     @Value("${updates.topic}")
     private String topic;
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 7000)
     public void writeNewMessages() {
         Updates updates = telegramClient.getUpdates();
-
         if (updates.isOk() && updates.getResult().length > 0) {
-            Update[] updatesResult = updates.getResult();
-            TelegramClient.setOffset(updatesResult[updatesResult.length - 1].getUpdateId() + 1);
-            for (int i = 0; i < updatesResult.length; i++) {
-                int tempIndex = i;
-                kafkaTemplate.send(topic, updatesResult[i]).addCallback((result -> {
+            List<Update> updatesResult = List.of(updates.getResult());
+            if (!failureUpdates.isEmpty()) {
+                updatesResult.addAll(failureUpdates);
+                updatesResult.clear();
+            }
+            TelegramClient.setOffset(updatesResult.get(updatesResult.size() - 1).getUpdateId() + 1);
+            for (Update update : updatesResult) {
+                kafkaTemplate.send(topic, update).addCallback((result -> {
                 }), (ex) -> {
-                    failureUpdates.add(updatesResult[tempIndex]);
+                    failureUpdates.add(update);
                     logger.log(Level.WARNING, ex.getMessage());
                 });
             }
-        }
 
+        }
     }
 
-
 }
+

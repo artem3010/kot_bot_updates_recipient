@@ -14,15 +14,16 @@ import java.util.Map;
 @Service
 public class TelegramClient {
 
-    private static int UPDATES_LIMIT = 100;
-    private static int TIMEOUT = 4;
+    private static final int UPDATES_LIMIT = 100;
+    private static final int TIMEOUT = 4;
+    @lombok.Setter
     private static int offset = 0;
-    private RestTemplate restTemplate;
 
     @Value("${telegram.url}")
     private String url;
 
     public Updates getUpdates() {
+        RestTemplate restTemplate = new RestTemplate();
         String updateUrl = url + "/getUpdates";
         String query = UriComponentsBuilder
                 .fromHttpUrl(updateUrl)
@@ -39,12 +40,4 @@ public class TelegramClient {
         return restTemplate.exchange(query, HttpMethod.GET, null, Updates.class, params).getBody();
     }
 
-    @PostConstruct
-    public void init() {
-        restTemplate = new RestTemplate();
-    }
-
-    public static void setOffset(int offset) {
-        TelegramClient.offset = offset;
-    }
 }
